@@ -258,7 +258,7 @@ boolean() {
 			echo "0"
 			;;
 		*)
-			echo $1
+			echo "$1"
 			;;
 	esac
 }
@@ -318,7 +318,7 @@ check_exit_status() {
 # $4 - error code to produce
 #
 check_exit_status_equals() {
-	if [ $1 -eq $2 ]; then
+	if [ "$1" -eq "$2" ]; then
 		print_error_and_die "$3, exiting..." "$4"
 	fi
 }
@@ -331,7 +331,7 @@ check_exit_status_equals() {
 # $4 - error code to produce
 #
 check_exit_status_not_equals() {
-	if [ $1 -ne $2 ]; then
+	if [ "$1" -ne "$2" ]; then
 		print_error_and_die "$3, exiting..." "$4"
 	fi
 }
@@ -1155,12 +1155,12 @@ urlencode() {
 
 set_insecure() {
 	local config="$(get_config insecure)"
-	[ -n "$config" ] && INSECURE="$(boolean $config)"
+	[ -n "$config" ] && INSECURE="$(boolean "$config")"
 }
 
 set_curl_disable_epsv() {
 	local config="$(get_config disable-epsv)"
-	[ -n "$config" ] && CURL_DISABLE_EPSV="$(boolean $config)"
+	[ -n "$config" ] && CURL_DISABLE_EPSV="$(boolean "$config")"
 }
 
 set_curl_proxy() {
@@ -1212,7 +1212,7 @@ download_remote_updates () {
 	handle_lftp_settings
 	
 	local lftp_cd=""
-	[ -n $REMOTE_PATH ] && lftp_cd="cd ${REMOTE_PATH} &&"
+	[ -n "$REMOTE_PATH" ] && lftp_cd="cd ${REMOTE_PATH} &&"
 	local lftp_action="mirror $mirror_options $delete $ignoreall $include $ignore . $SYNCROOT &&"
 	local lftp_exit="wait all && exit"
 	
@@ -1284,14 +1284,14 @@ fetch_remote() {
 	download_remote_updates
 	[ $DRY_RUN -ne 1 ] || return
 	git add --all
-	git commit -m '[git-ftp] remotely untracked modifications' -m "`git diff HEAD --name-status`" | grep -v '^#'
+	git commit -m '[git-ftp] remotely untracked modifications' -m "$(git diff HEAD --name-status)" | grep -v '^#'
 	set_local_sha1
 	upload_local_sha1
 }
 
 handle_fetch() {
 	local old_sha1=$DEPLOYED_SHA1
-	git checkout $DEPLOYED_SHA1 2> /dev/null
+	git checkout "$DEPLOYED_SHA1" 2> /dev/null
 	# If .gitignore changes between commits, untracked file can remain.
 	# These files are preserved in a stash record.
 	local stash=$(git stash -u)
@@ -1300,7 +1300,7 @@ handle_fetch() {
 	release_remote_lock
 	[ "$stash" != 'No local changes to save' ] && git stash pop
 	git checkout "$CURRENT_BRANCH" 2> /dev/null
-	if [ $DRY_RUN -ne 1 ] && [ $old_sha1 != $LOCAL_SHA1 ]; then
+	if [ $DRY_RUN -ne 1 ] && [ "$old_sha1" != "$LOCAL_SHA1" ]; then
 		print_info "From $REMOTE_HOST/$REMOTE_PATH"
 		print_info "   $old_sha1..$LOCAL_SHA1"
 	fi
@@ -1398,7 +1398,7 @@ action_pull() {
 	set_deployed_sha1
 	handle_fetch
 	set_merge_args
-	git merge $MERGE_ARGS $LOCAL_SHA1
+	git merge "$MERGE_ARGS" "$LOCAL_SHA1"
 }
 
 action_snapshot() {
@@ -1491,7 +1491,7 @@ check_remote_lock() {
 check_is_git_project() {
 	local git_project_dir="$(git rev-parse --show-toplevel 2>/dev/null)"
 	[ -z "$git_project_dir" ] &&  print_error_and_die "Not a Git project? Exiting..." "$ERROR_GIT"
-	cd "$git_project_dir"
+	cd "$git_project_dir" || exit
 }
 
 check_is_dirty_repository() {
